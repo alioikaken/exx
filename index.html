@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Shield Suite | Network Analyzer</title>
+    <style>
+        :root {
+            --bg-color: #0a0f0d;
+            --panel-bg: #111814;
+            --primary: #00ff66;
+            --primary-dim: #00aa44;
+            --text: #cdffd8;
+            --error: #ff3333;
+            --warning: #ffcc00;
+            --border: #00ff6633;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .status-bar {
+            font-size: 14px;
+        }
+
+        /* Main Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            color: var(--primary);
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Controls & Inputs */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input, button, select {
+            background: #000;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input {
+            flex-grow: 1;
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Port Scanner Terminal */
+        .terminal {
+            background: #050806;
+            border: 1px solid #003311;
+            height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #00ff66;
+        }
+
+        .term-success { color: var(--primary); }
+        .term-error { color: var(--error); }
+        .term-warn { color: var(--warning); }
+
+        /* Wireshark Table Area */
+        .wireshark-container {
+            grid-column: 1 / -1;
+        }
+
+        .table-wrapper {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            background: var(--primary-dim);
+            color: #000;
+            padding: 8px;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #1a261f;
+        }
+
+        tr:nth-child(even) {
+            background: #16201b;
+        }
+
+        tr:hover {
+            background: #223329;
+            cursor: pointer;
+        }
+
+        .badge {
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .bg-tcp { background: #1a3a5f; color: #70b5ff; }
+        .bg-udp { background: #5f3a1a; color: #ffb570; }
+        .bg-dns { background: #3a5f1a; color: #b5ff70; }
+
+        /* Live Charts simulation */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: #0d1611;
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 20px;
+            color: var(--primary);
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>⚡ CYBER-SHIELD // NET-ANALYZER</h1>
+            <span style="font-size: 11px; color: #669977;">SECURE ENVIRONMENT // V 1.0.4</span>
+        </div>
+        <div class="status-bar">
+            SYSTEM STATUS: <span style="color: var(--primary); text-shadow: 0 0 5px var(--primary);">● ONLINE</span> | 
+            IP: <span id="my-ip">127.0.0.1</span>
+        </div>
+    </header>
+
+    <div class="dashboard">
+
+        <!-- PANEL 1: PORT SCANNER -->
+        <div class="panel">
+            <div class="panel-title">
+                <span>[01] PORT SCANNER (INTELLIGENCE)</span>
+                <span style="font-size: 12px; color: #666;">SYN/ACK MODE</span>
+            </div>
+            <div class="input-group">
+                <input type="text" id="target-ip" value="192.168.1.1" placeholder="Нысана IP (мысалы: 192.168.1.1)">
+                <select id="scan-type">
+                    <option value="quick">Жылдам (Танымал порттар)</option>
+                    <option value="full">Толық бақылау (1-1024)</option>
+                </select>
+                <button id="btn-scan" onclick="startPortScan()">СКАНЕУ</button>
+            </div>
+            <div class="terminal" id="scan-term">
+                [SYSTEM] Мониторинг жүйесі дайын. IP енгізіп, "СКАНЕУ" түймесін басыңыз...
+            </div>
+        </div>
+
+        <!-- PANEL 2: SYSTEM METRICS -->
+        <div class="panel">
+            <div class="panel-title">[02] NETWORK UTILITIES & SNIFFER SIM]</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div>Бакеттер/сек</div>
+                    <div class="stat-val" id="pkts-sec">0</div>
+                </div>
+                <div class="stat-card">
+                    <div>Қауіп деңгейі</div>
+                    <div class="stat-val" id="threat-level" style="color: var(--primary);">0%</div>
+                </div>
+                <div class="stat-card">
+                    <div>Ашық порттар</div>
+                    <div class="stat-val" id="open-ports-count" style="color: var(--warning);">0</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <button id="btn-sniff" onclick="toggleSniffer()" style="width: 100%; border-color: #ffaa00; color: #ffaa00;">
+                    📡 WIRESHARK SNIFFER-ДІ ІСКЕ ҚОСУ
+                </button>
+            </div>
+            <div class="terminal" id="util-term" style="height: 125px;">
+                [INFO] Трафикті талдау сүзгілері ретке келтірілді.
+            </div>
+        </div>
+
+        <!-- PANEL 3: WIRESHARK PACKET CAPTURE -->
+        <div class="panel wireshark-container">
+            <div class="panel-title">
+                <span>[03] WIRESHARK SIMULATOR (LIVE PACKET CAPTURE)</span>
+                <span id="sniff-status" style="color: var(--error);">STATUS: PAUSED</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Time (s)</th>
+                            <th>Source IP</th>
+                            <th>Destination IP</th>
+                            <th>Protocol</th>
+                            <th>Length</th>
+                            <th>Info</th>
+                        </tr>
+                    </thead>
+                    <tbody id="packet-table-body">
+                        <!-- Трафик осы жерге түседі -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Fake Local IP Generator
+        document.getElementById('my-ip').innerText = `192.168.${Math.floor(Math.random()*254)}.${Math.floor(Math.random()*254)}`;
+
+        // --- PORT SCANNER LOGIC ---
+        const commonPorts = [21, 22, 23, 25, 53, 80, 110, 443, 8080, 3306];
+        let isScanning = false;
+
+        function appendTerminal(elementId, text, className = '') {
+            const term = document.getElementById(elementId);
+            const p = document.createElement('div');
+            if(className) p.className = className;
+            p.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+            term.appendChild(p);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        async function startPortScan() {
+            if (isScanning) return;
+            const target = document.getElementById('target-ip').value;
+            if (!target) return alert("IP мекенжайын енгізіңіз");
+
+            isScanning = true;
+            document.getElementById('btn-scan').innerText = "СКАНДАНУДА...";
+            const term = document.getElementById('scan-term');
+            term.innerHTML = ''; // Тазалау
+            
+            appendTerminal('scan-term', `Сканерлеу басталды: ${target}`, 'term-warn');
+            
+            const mode = document.getElementById('scan-type').value;
+            let portsToScan = mode === 'quick' ? commonPorts : Array.from({length: 150}, (_, i) => i + 1); 
+            let openCount = 0;
+
+            for (let port of portsToScan) {
+                appendTerminal('scan-term', `Порт тексерілуде: ${port}...`);
+                // Симуляциялық кідіріс (жылдамдық сезіну үшін)
+                await new Promise(resolve => setTimeout(resolve, mode === 'quick' ? 150 : 20));
+
+                // Кездейсоқ порттарды ашық қылып көрсету
+                if (Math.random() < 0.15 || port === 80 || port === 443) {
+                    let service = getServiceLabel(port);
+                    appendTerminal('scan-term', `[+] ПОРТ АШЫҚ: ${port} (${service})`, 'term-success');
+                    openCount++;
+                    document.getElementById('open-ports-count').innerText = openCount;
+                }
+            }
+
+            appendTerminal('scan-term', `Сканерлеу аяқталды. Барлығы ашық порттар: ${openCount}`, 'term-warn');
+            document.getElementById('btn-scan').innerText = "СКАНЕУ";
+            isScanning = false;
+        }
+
+        function getServiceLabel(port) {
+            const services = {21:'FTP', 22:'SSH', 23:'Telnet', 25:'SMTP', 53:'DNS', 80:'HTTP', 443:'HTTPS', 3306:'MySQL', 8080:'HTTP-Proxy'};
+            return services[port] || 'Unknown Service';
+        }
+
+
+        // --- WIRESHARK SIMULATOR LOGIC ---
+        let snifferInterval = null;
+        let packetCount = 0;
+        let isSniffing = false;
+
+        const ips = ['192.168.1.1', '10.0.0.15', '172.16.0.4', '192.168.1.45', '8.8.8.8', '142.250.186.46'];
+        const protocols = ['TCP', 'UDP', 'DNS', 'TLSv1.2', 'HTTP'];
+        const mockInfos = [
+            'GET /index.html HTTP/1.1',
+            'Standard query 0x31a2 AAAA google.com',
+            'Client Hello (SNI: github.com)',
+            'Acknowledgement, Win=64240, Len=0',
+            'Application Data [Encrypted]',
+            'DB Query: SELECT * FROM users'
+        ];
+
+        function toggleSniffer() {
+            const btn = document.getElementById('btn-sniff');
+            const status = document.getElementById('sniff-status');
+
+            if (!isSniffing) {
+                isSniffing = true;
+                btn.innerText = "🛑 SNIFFER-ДІ ТОҚТАТУ";
+                btn.style.borderColor = "#ff3333";
+                btn.style.color = "#ff3333";
+                status.innerText = "STATUS: CAPTURING LIVE...";
+                status.style.color = "var(--primary)";
+                appendTerminal('util-term', "Wireshark Promiscuous Mode іске қосылды.", 'term-success');
+
+                snifferInterval = setInterval(() => {
+                    packetCount++;
+                    generateFakePacket();
+                    
+                    // Обновление метрик
+                    document.getElementById('pkts-sec').innerText = Math.floor(Math.random() * 15) + 5;
+                    if(packetCount % 7 === 0) {
+                        let alertChance = Math.floor(Math.random() * 45);
+                        let threat = document.getElementById('threat-level');
+                        threat.innerText = alertChance + '%';
+                        if(alertChance > 30) {
+                            threat.style.color = 'var(--error)';
+                            appendTerminal('util-term', `⚠️ Қауіпті белсенділік байқалды! Трафикті тексеріңіз.`, 'term-error');
+                        } else {
+                            threat.style.color = 'var(--primary)';
+                        }
+                    }
+                }, 800);
+            } else {
+                isSniffing = false;
+                btn.innerText = "📡 WIRESHARK SNIFFER-ДІ ІСКЕ ҚОСУ";
+                btn.style.borderColor = "#ffaa00";
+                btn.style.color = "#ffaa00";
+                status.innerText = "STATUS: PAUSED";
+                status.style.color = "var(--error)";
+                clearInterval(snifferInterval);
+                document.getElementById('pkts-sec').innerText = 0;
+                appendTerminal('util-term', "Sniffer тоқтатылды.", 'term-warn');
+            }
+        }
+
+        function generateFakePacket() {
+            const tbody = document.getElementById('packet-table-body');
+            const tr = document.createElement('tr');
+
+            const time = (performance.now() / 1000).toFixed(4);
+            const src = ips[Math.floor(Math.random() * ips.length)];
+            let dst = ips[Math.floor(Math.random() * ips.length)];
+            while (src === dst) { dst = ips[Math.floor(Math.random() * ips.length)]; } // бірдей болмауы үшін
+
+            const proto = protocols[Math.floor(Math.random() * protocols.length)];
+            const len = Math.floor(Math.random() * 1200) + 54;
+            const info = mockInfos[Math.floor(Math.random() * mockInfos.length)];
+
+            let badgeClass = 'bg-tcp';
+            if (proto === 'UDP') badgeClass = 'bg-udp';
+            if (proto === 'DNS') badgeClass = 'bg-dns';
+
+            tr.innerHTML = `
+                <td>${packetCount}</td>
+                <td>${time}</td>
+                <td style="color: #aaffaa;">${src}</td>
+                <td style="color: #ffaaff;">${dst}</td>
+                <td><span class="badge ${badgeClass}">${proto}</span></td>
+                <td>${len}</td>
+                <td style="font-family: monospace; color: #aaa;">${info}</td>
+            `;
+
+            // Кестенің ең басына жаңа пакетті қосу
+            tbody.insertBefore(tr, tbody.firstChild);
+
+            // Егер пакет тым көп болса, ескілерін өшіру (браузер қатпауы үшін)
+            if (tbody.children.length > 50) {
+                tbody.removeChild(tbody.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>
